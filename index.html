@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTROTWIN // NASA HRP BIOMETRIC CORE</title>
+    <style>
+        :root {
+            --bg: #04070d;
+            --panel: rgba(10, 17, 30, 0.85);
+            --border: rgba(56, 189, 248, 0.25);
+            --text: #e2e8f0;
+            --muted: #64748b;
+            --cyan: #38bdf8;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --purple: #a855f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .space-orb {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 400px;
+            height: 400px;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .orb-core {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(56,189,248,0.4), #000);
+            box-shadow: 0 0 50px rgba(56,189,248,0.6), inset -20px -20px 40px rgba(0,0,0,0.8);
+            position: relative;
+            animation: pulseOrb 4s infinite alternate;
+        }
+
+            .orb-core::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.5) 3px, rgba(0,0,0,0.5) 5px);
+                opacity: 0.6;
+            }
+
+        @keyframes pulseOrb {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 50px rgba(56,189,248,0.4);
+            }
+
+            100% {
+                transform: scale(1.05);
+                box-shadow: 0 0 80px rgba(168,85,247,0.6);
+            }
+        }
+
+        .orb-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(56,189,248,0.3);
+        }
+
+        .ring-1 {
+            width: 300px;
+            height: 300px;
+            transform: rotateX(70deg) rotateZ(20deg);
+            animation: spinRing 10s linear infinite;
+        }
+
+        .ring-2 {
+            width: 450px;
+            height: 450px;
+            transform: rotateX(60deg) rotateZ(-30deg);
+            animation: spinRing 15s linear infinite reverse;
+        }
+
+        .ring-3 {
+            width: 600px;
+            height: 600px;
+            transform: rotateX(80deg) rotateZ(60deg);
+            border: 1px dashed rgba(168,85,247,0.3);
+            animation: spinRing 20s linear infinite;
+        }
+
+        @keyframes spinRing {
+            100% {
+                transform: rotateX(70deg) rotateZ(380deg);
+            }
+        }
+
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(4, 7, 13, 0.7);
+            backdrop-filter: blur(14px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            font-size: 16px;
+            color: var(--cyan);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        .env-switch {
+            display: flex;
+            gap: 4px;
+            background: rgba(0,0,0,0.5);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .env-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+            .env-btn.active {
+                background: var(--cyan);
+                color: #04070d;
+                box-shadow: 0 0 15px rgba(56,189,248,0.4);
+            }
+
+        .top-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .hud-btn {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid var(--border);
+            color: var(--cyan);
+            padding: 7px 13px;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+            .hud-btn:hover {
+                background: var(--cyan);
+                color: #04070d;
+            }
+
+            .hud-btn.danger {
+                border-color: rgba(239,68,68,0.5);
+                color: var(--red);
+                background: rgba(239,68,68,0.1);
+            }
+
+                .hud-btn.danger:hover {
+                    background: var(--red);
+                    color: #fff;
+                }
+
+            .hud-btn.special {
+                border-color: rgba(168,85,247,0.5);
+                color: var(--purple);
+                background: rgba(168,85,247,0.1);
+            }
+
+                .hud-btn.special:hover {
+                    background: var(--purple);
+                    color: #fff;
+                }
+
+        .sys-time {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--yellow);
+            letter-spacing: 1px;
+            margin-right: 15px;
+            border-right: 1px solid var(--border);
+            padding-right: 15px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .workspace {
+            position: relative;
+            z-index: 5;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 340px 1fr 320px;
+            gap: 20px;
+            padding: 20px 28px;
+            align-items: start;
+            overflow: hidden;
+        }
+
+        .glass-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--cyan);
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .section-header {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 8px 0 4px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed rgba(56,189,248,0.15);
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            border-left: 3px solid var(--green);
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+            .telemetry-row:hover {
+                background: rgba(56,189,248,0.12);
+                transform: translateX(3px);
+                border-left-color: var(--cyan);
+            }
+
+            .telemetry-row.warn {
+                border-left-color: var(--yellow);
+                background: rgba(245,158,11,0.06);
+            }
+
+            .telemetry-row.crit {
+                border-left-color: var(--red);
+                background: rgba(239,68,68,0.1);
+                animation: pulseRed 1.5s infinite;
+            }
+
+        @keyframes pulseRed {
+            50% {
+                background: rgba(239,68,68,0.2);
+            }
+        }
+
+        .telemetry-row.selected {
+            box-shadow: 0 0 0 2px var(--cyan), inset 0 0 10px rgba(56,189,248,0.3);
+        }
+
+        .holo-stage {
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 10px;
+        }
+
+        .holo-wrapper {
+            position: relative;
+            width: 360px;
+            height: 460px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .holo-ring-base {
+            position: absolute;
+            bottom: 0;
+            width: 280px;
+            height: 54px;
+            border: 2px solid var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(56,189,248,0.4), inset 0 0 20px rgba(56,189,248,0.3);
+            transform: rotateX(70deg);
+            animation: ringSpin 12s linear infinite;
+        }
+
+        @keyframes ringSpin {
+            100% {
+                transform: rotateX(70deg) rotateZ(360deg);
+            }
+        }
+
+        .laser-beam {
+            position: absolute;
+            left: 5%;
+            width: 90%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            box-shadow: 0 0 15px var(--cyan);
+            z-index: 6;
+            pointer-events: none;
+            animation: scanVertical 4.5s ease-in-out infinite;
+        }
+
+        @keyframes scanVertical {
+            0%, 100% {
+                top: 8%;
+                opacity: 0.2;
+            }
+
+            50% {
+                top: 88%;
+                opacity: 1;
+            }
+        }
+
+        svg.holo-body {
+            height: 440px;
+            width: auto;
+            z-index: 2;
+            filter: drop-shadow(0 0 15px rgba(56,189,248,0.6));
+            transition: filter 0.4s ease;
+        }
+
+            svg.holo-body.glow-active {
+                filter: drop-shadow(0 0 35px rgba(56,189,248,0.9)) drop-shadow(0 0 15px rgba(56,189,248,0.6));
+            }
+
+            svg.holo-body.glow-warn {
+                filter: drop-shadow(0 0 35px rgba(245,158,11,0.9)) drop-shadow(0 0 15px rgba(245,158,11,0.6));
+            }
+
+            svg.holo-body.glow-crit {
+                filter: drop-shadow(0 0 35px rgba(239,68,68,0.9)) drop-shadow(0 0 15px rgba(239,68,68,0.6));
+                animation: critPulse 1s infinite alternate;
+            }
+
+        @keyframes critPulse {
+            0% {
+                filter: drop-shadow(0 0 25px rgba(239,68,68,0.6));
+            }
+
+            100% {
+                filter: drop-shadow(0 0 50px rgba(239,68,68,1));
+            }
+        }
+
+        .rec-panel {
+            display: none;
+            width: 92%;
+            max-width: 480px;
+            margin-top: 14px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--yellow);
+            border-radius: 14px;
+            padding: 14px 18px;
+            z-index: 20;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+            .rec-panel.crit {
+                border-color: var(--red);
+            }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(25px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .rec-title {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--yellow);
+        }
+
+        .rec-panel.crit .rec-title {
+            color: var(--red);
+        }
+
+        .rec-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .rec-body {
+            font-size: 13px;
+            color: #e2e8f0;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .rec-advice {
+            font-size: 12px;
+            color: var(--cyan);
+            padding: 8px 10px;
+            background: rgba(56,189,248,0.08);
+            border-radius: 6px;
+            border-left: 2px solid var(--cyan);
+            margin-bottom: 10px;
+        }
+
+        .rec-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .quest-btn {
+            background: rgba(16,185,129,0.15);
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .quest-btn:hover {
+                background: var(--green);
+                color: #04070d;
+            }
+
+            .quest-btn.done {
+                opacity: 0.4;
+                pointer-events: none;
+            }
+
+        .xp-bar {
+            height: 8px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            width: 45%;
+            transition: 0.4s ease;
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .quest-card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 11px 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 5, 10, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-card {
+            background: #06101d;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            width: 95%;
+            max-width: 950px;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(56,189,248,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+            .modal-header h2 {
+                font-size: 15px;
+                color: var(--cyan);
+                letter-spacing: 2px;
+            }
+
+        .close-btn {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.5);
+            color: var(--red);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+            .close-btn:hover {
+                background: var(--red);
+                color: #fff;
+            }
+
+        .mod-folder {
+            margin-bottom: 10px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(56,189,248,0.15);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .mod-folder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .mod-folder-header:hover {
+                background: rgba(56,189,248,0.08);
+            }
+
+            .mod-folder-header .title {
+                font-size: 13px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+            }
+
+            .mod-folder-header .status-badge {
+                font-size: 10px;
+                font-weight: 700;
+                padding: 2px 8px;
+                border-radius: 4px;
+                margin-left: 10px;
+                background: rgba(100,116,139,0.3);
+                color: var(--muted);
+            }
+
+                .mod-folder-header .status-badge.configured {
+                    background: rgba(16,185,129,0.2);
+                    color: var(--green);
+                }
+
+        .folder-arrow {
+            color: var(--muted);
+            transition: transform 0.25s;
+            display: inline-block;
+        }
+
+        .mod-folder.open .folder-arrow {
+            transform: rotate(90deg);
+        }
+
+        .mod-folder-body {
+            display: none;
+            padding: 0 16px 16px 16px;
+        }
+
+        .mod-folder.open .mod-folder-body {
+            display: block;
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(56,189,248,0.1);
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+            .slider-header span {
+                color: var(--cyan);
+            }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background-color: rgba(56,189,248,0.2);
+            border-radius: 3px;
+            outline: none;
+        }
+
+            input[type=range]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                height: 16px;
+                width: 16px;
+                border-radius: 50%;
+                background: var(--cyan);
+                cursor: pointer;
+                box-shadow: 0 0 10px var(--cyan);
+            }
+
+        .folder-conclusion {
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 10px 12px;
+            background: rgba(56,189,248,0.06);
+            border-left: 2px solid var(--cyan);
+            border-radius: 6px;
+            color: #cbd5e1;
+        }
+
+            .folder-conclusion.warn {
+                background: rgba(245,158,11,0.08);
+                border-color: var(--yellow);
+                color: var(--yellow);
+            }
+
+            .folder-conclusion.crit {
+                background: rgba(239,68,68,0.08);
+                border-color: var(--red);
+                color: var(--red);
+            }
+
+        .apply-btn {
+            background: rgba(16,185,129,0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.2s;
+            font-size: 13px;
+        }
+
+            .apply-btn:hover {
+                background: var(--green);
+                color: #04070d;
+            }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .report-section {
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(56,189,248,0.15);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+            .report-section h3 {
+                font-size: 12px;
+                letter-spacing: 1px;
+                color: var(--cyan);
+                margin-bottom: 10px;
+                text-transform: uppercase;
+            }
+
+        .report-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 12px;
+        }
+
+            .report-row:last-child {
+                border-bottom: none;
+            }
+
+            .report-row .delta-neg {
+                color: var(--red);
+            }
+
+            .report-row .delta-pos {
+                color: var(--green);
+            }
+
+        .factor-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .factor-label {
+            width: 110px;
+            font-size: 11px;
+        }
+
+        .factor-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .factor-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .factor-val {
+            width: 60px;
+            text-align: right;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pvt-box {
+            height: 150px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.6);
+            border: 2px dashed var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 800;
+            margin: 16px 0;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+            .pvt-box.go {
+                background: var(--green);
+                color: #04070d;
+                border-style: solid;
+                box-shadow: 0 0 30px var(--green);
+            }
+
+        canvas#ecg {
+            width: 100%;
+            height: 48px;
+            background: rgba(0,0,0,0.45);
+            border-radius: 8px;
+            border: 1px solid rgba(56,189,248,0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+    <div class="space-orb">
+        <div class="orb-core"></div>
+        <div class="orb-ring ring-1"></div>
+        <div class="orb-ring ring-2"></div>
+        <div class="orb-ring ring-3"></div>
+    </div>
+
+    <header>
+        <div class="brand"><div class="live-dot"></div>ASTROTWIN // NASA HRP CORE</div>
+        <div class="env-switch">
+            <button class="env-btn active" onclick="setEnv('ISS', this)">ISS (0.00g)</button>
+            <button class="env-btn" onclick="setEnv('MOON', this)">MOON (0.16g)</button>
+            <button class="env-btn" onclick="setEnv('MARS', this)">MARS (0.38g)</button>
+        </div>
+        <div class="top-controls">
+            <div class="sys-time" id="sys-time-display">DAY 001 // 00:00</div>
+            <button class="hud-btn special" onclick="openBioModModal()">🧬 Bio-Modulation</button>
+            <button class="hud-btn" onclick="openGraphsModal()">📊 Graphs</button>
+            <button class="hud-btn danger" onclick="simulateAnomaly()">Simulate Risk</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="glass-panel" id="left-panel">
+            <div class="panel-title"><span>Sensor Telemetry</span><span id="comm-delay" style="color:var(--green);">LINK: 1.2s</span></div>
+
+            <!-- AI CALIBRATION BLOCK -->
+            <div style="background: rgba(56,189,248,0.1); border: 1px solid var(--cyan); border-radius: 8px; padding: 8px 10px; font-size: 11px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>AI Calibration:</span>
+                    <span id="ai-confidence" style="font-weight: bold; color: var(--cyan);">0%</span>
+                </div>
+                <div style="font-size: 9px; color: var(--muted);" id="ai-status-text">Collecting baseline data...</div>
+            </div>
+
+            <canvas id="ecg"></canvas>
+
+            <div class="section-header">Live Sensors</div>
+            <div id="sensors-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+
+            <div class="section-header">Current Regimen</div>
+            <div id="inputs-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+
+            <div class="section-header">Health Metrics</div>
+            <div id="outputs-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+
+            <div style="border-top:1px solid var(--border); padding-top:10px; display:flex; gap:8px; margin-top:6px;">
+                <button class="hud-btn" style="flex:1;" onclick="openPVT()">Neuro PVT</button>
+                <button class="hud-btn" style="flex:1;" onclick="openCamScan()">Optical Scan</button>
+            </div>
+        </div>
+
+        <div class="holo-stage">
+            <div class="holo-wrapper">
+                <div class="laser-beam"></div>
+                <div class="holo-ring-base"></div>
+
+                <svg class="holo-body" id="holo-body" viewBox="0 0 200 500">
+                    <defs>
+                        <pattern id="dots" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+                            <circle cx="2" cy="2" r="1.8" fill="#38bdf8" opacity="0.7" />
+                        </pattern>
+                        <linearGradient id="body-grad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8" />
+                            <stop offset="100%" stop-color="#a855f7" stop-opacity="0.5" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="100" cy="55" r="24" fill="url(#dots)" stroke="url(#body-grad)" stroke-width="4" />
+                    <path d="
+          M 85 82 L 60 90 L 45 180 Q 42 195, 55 195 Q 65 195, 65 185
+          L 80 120 L 78 400 Q 76 415, 90 415 Q 100 415, 100 400
+          L 98 220 L 100 210 L 102 220 L 100 400 Q 100 415, 110 415
+          Q 124 415, 122 400 L 120 120 L 135 185 Q 135 195, 145 195
+          Q 158 195, 155 180 L 140 90 L 115 82 Z"
+                          fill="url(#dots)" stroke="url(#body-grad)" stroke-width="4" stroke-linejoin="round" />
+                </svg>
+            </div>
+
+            <div class="rec-panel" id="rec-panel">
+                <div class="rec-header">
+                    <span class="rec-title" id="rec-title">ADVISORY</span>
+                    <button class="rec-close" onclick="closeRec()">✕</button>
+                </div>
+                <div class="rec-body" id="rec-body"></div>
+                <div class="rec-advice" id="rec-advice"></div>
+                <div class="rec-actions" id="rec-actions"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel" id="right-panel">
+            <div class="panel-title"><span>Crew Readiness Rank</span><span id="rank-label" style="color:var(--green);">LVL 1 // SPECIALIST</span></div>
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--muted);">
+                    <span>Daily EVA Clearance</span>
+                    <span id="xp-text" style="color:var(--cyan); font-weight:700;">0 / 600 XP</span>
+                </div>
+                <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+            </div>
+            <div class="panel-title" style="margin-top:6px;"><span>Active Countermeasures</span></div>
+            <div id="quests-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal" id="bio-mod-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>🧬 BIO-MODULATION SIMULATOR</h2>
+                <button class="close-btn" onclick="closeModals()">Close ✕</button>
+            </div>
+
+            <div style="margin-bottom: 20px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--cyan);">
+                <div class="slider-header" style="font-size: 14px; display: flex; justify-content: space-between;">
+                    Forecast Horizon <span id="val-days" style="color: var(--cyan); font-weight: bold;">84 days</span>
+                </div>
+                <input type="range" id="slider-days" min="7" max="365" step="1" value="84" oninput="onDaysSliderChange(this)" style="width: 100%; margin-top: 8px;">
+            </div>
+
+            <div id="mod-folders-container"></div>
+            <button class="apply-btn" onclick="runFullReport()">📊 Full Report — Aggregate All Modules ➔</button>
+        </div>
+    </div>
+
+    <div class="modal" id="report-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>📊 FULL MISSION FORECAST REPORT</h2>
+                <button class="close-btn" onclick="closeModals()">Close ✕</button>
+            </div>
+            <div id="report-content"></div>
+            <button class="apply-btn" onclick="applyFullModulation()">Apply Modulation to Telemetry ➔</button>
+        </div>
+    </div>
+
+    <div class="modal" id="graphs-modal">
+        <div class="modal-card" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>📊 MULTI-WEEK TELEMETRY</h2>
+                <button class="close-btn" onclick="closeModals()">Close ✕</button>
+            </div>
+            <div class="graphs-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="pvt-modal">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header"><h2>NASA PVT TEST</h2><button class="close-btn" onclick="closeModals()">Close ✕</button></div>
+            <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">Click the target immediately when it turns GREEN.</p>
+            <div class="pvt-box" id="pvt-box" onclick="handlePVTClick()">WAIT FOR SIGNAL...</div>
+            <div id="pvt-result" style="font-size:14px; font-weight:700; color:var(--cyan); min-height:20px; text-align:center;"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="cam-modal">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header"><h2>OPTICAL rPPG SCANNER</h2><button class="close-btn" onclick="closeModals()">Cancel ✕</button></div>
+            <div style="position:relative; height:210px; background:#000; border-radius:10px; overflow:hidden; margin-bottom:14px; border:1px solid var(--cyan);">
+                <video id="cam-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform:scaleX(-1);"></video>
+                <div style="position:absolute; inset:20px; border:2px dashed var(--green); border-radius:50%; pointer-events:none;"></div>
+            </div>
+            <button class="quest-btn" style="padding:10px; width:100%;" onclick="runCamMeasure()">Capture 4s Telemetry</button>
+        </div>
+    </div>
+
+    <script>
+// @ts-nocheck
+const clamp = (x,a,b) => Math.min(b, Math.max(a, x));
+
+let currentEnv = 'ISS';
+const gravityFactors = {
+          ISS:  { bones: 1.0, muscles: 1.0, cardio: 1.0 },
+          MOON: { bones: 0.25, muscles: 0.75, cardio: 0.8 },
+          MARS: { bones: 0.15, muscles: 0.5, cardio: 0.6 }
+};
+
+// === AI CALIBRATION STATE ===
+let aiConfidence = 0;
+let personalizationFactor = 1.0;
+const TRUE_PERSONAL_FACTOR = 2.2; // Насколько быстрее реально деградирует этот астронавт (2.2 = в 2.2 раза быстрее нормы)
+let simDay = 1;
+
+const metrics = {
+          heart:    { name: "Heart Rate", val: 72, unit: "bpm", norm: "60-100", group: "sensor",
+                      warn: v => v > 100 || v < 55, crit: v => v > 120 || v < 45,
+                      advice: "Rest, hydration, or consult flight surgeon if persistent." },
+          o2:       { name: "O2 Saturation", val: 99, unit: "%", norm: "96-100", group: "sensor",
+                      warn: v => v < 96, crit: v => v < 92,
+                      advice: "Check cabin atmosphere. Increase O2 flow if sustained." },
+          ocular:   { name: "Ocular / ICP (SANS)", val: 16.1, unit: "mmHg", norm: "10-18", group: "sensor",
+                      warn: v => v > 18, crit: v => v > 21,
+                      advice: "Use LBNP suit, lower head position during sleep." },
+          cognitive:{ name: "Cognitive Speed", val: 245, unit: "ms", norm: "<380", group: "sensor",
+                      warn: v => v > 380, crit: v => v > 500,
+                      advice: "Sleep, rest, run PVT again to confirm." },
+
+          bones:    { name: "Bone Mineral Density", val: 100, unit: "%", norm: ">95", group: "output",
+                      warn: v => v < 95, crit: v => v < 90,
+                      advice: "Increase ARED load, ensure Calcium ≥1200mg/day and Vitamin D ≥1000 IU/day." },
+          muscles:  { name: "Skeletal Muscle Mass", val: 100, unit: "%", norm: ">95", group: "output",
+                      warn: v => v < 95, crit: v => v < 90,
+                      advice: "Increase ARED load, maintain Protein ≥1.6 g/kg/day." },
+          cardio:   { name: "Cardiac Output", val: 100, unit: "%", norm: ">95", group: "output",
+                      warn: v => v < 95, crit: v => v < 90,
+                      advice: "Increase Aerobic load, use LBNP suit 60 min/day." },
+          radDose:  { name: "Cumulative Radiation", val: 0, unit: "mSv", norm: "<600", group: "output",
+                      warn: v => v > 300, crit: v => v > 600,
+                      advice: "Career limit 600 mSv. Reduce EVA, consult flight surgeon." },
+          stress:   { name: "Physiological Stress", val: 50, unit: "idx", norm: "<60", group: "output",
+                      warn: v => v > 60, crit: v => v > 75,
+                      advice: "Sleep ≥8h/day, review work-rest schedule, meditation protocol." },
+          nutrition:{ name: "Nutrition Score", val: 100, unit: "%", norm: ">80", group: "output",
+                      warn: v => v < 80, crit: v => v < 60,
+                      advice: "Increase Vitamin D, Calcium, Protein to standard levels." },
+};
+
+const modulationPlan = {
+          ARED: 120, Aerobic: 100, VitD: 1000, Calcium: 1200, Protein: 1.6,
+          LBNP: 60, Sleep: 8, Cortisol: 12, DailyDose: 0.5, days: 84,
+};
+
+let activeMetric = null;
+
+function stepModel(state, plan, env = currentEnv, usePersonalization = false) {
+          const s = { ...state };
+          const ared = clamp(plan.ARED / 100, 0, 1.5);
+          const aer  = clamp(plan.Aerobic / 100, 0, 1.5);
+          const ca   = clamp(plan.Calcium / 1200, 0, 2);
+          const vd   = clamp(plan.VitD / 1000, 0, 2);
+          const pr   = clamp(plan.Protein / 1.6, 0, 1.5);
+          const lbnp = clamp(plan.LBNP / 100, 0, 1);
+          const slp  = clamp(plan.Sleep / 8, 0, 1.2);
+          const cort = clamp(plan.Cortisol / 12, 0, 2);
+
+          const g = gravityFactors[env];
+          let k = usePersonalization ? personalizationFactor : 1.0;
+
+          s.bones = clamp(s.bones - (0.04 * g.bones * k) * (1 - 0.6 * Math.min(ared, 1)) + 0.003 * (ca - 1) + 0.003 * (vd - 1), 60, 110);
+          s.muscles = clamp(s.muscles - (0.07 * g.muscles * k) * (1 - 0.8 * Math.min(ared, 1)) + 0.01 * (pr - 1), 55, 115);
+          s.cardio = clamp(s.cardio - (0.03 * g.cardio * k) * (1 - 0.7 * Math.min(aer, 1)) + 0.01 * (lbnp - 0.5), 55, 115);
+          s.radDose += plan.DailyDose;
+          s.stress = clamp(50 + 25 * (1 - slp) + 20 * (1 - clamp(s.cardio / 60, 0, 1.2)) + 10 * (cort - 1) + 5 * (plan.DailyDose / 0.5 - 1), 0, 100);
+          s.nutrition = (100 * clamp(plan.VitD / 2000, 0, 1) + 100 * clamp(plan.Calcium / 1200, 0, 1) + 100 * clamp(plan.Protein / 1.6, 0, 1)) / 3;
+          return s;
+}
+
+function simulateDual(state, plan, days) {
+          let sBaseline = { ...state };
+          let sPersonal = { ...state };
+          const historyBaseline = [ { ...sBaseline } ];
+          const historyPersonal = [ { ...sPersonal } ];
+
+          for (let i = 0; i < days; i++) {
+            sBaseline = stepModel(sBaseline, plan, currentEnv, false);
+            sPersonal = stepModel(sPersonal, plan, currentEnv, true);
+            historyBaseline.push({ ...sBaseline });
+            historyPersonal.push({ ...sPersonal });
+          }
+          return {
+            baseline: historyBaseline[historyBaseline.length-1],
+            personal: historyPersonal[historyPersonal.length-1],
+            historyBaseline,
+            historyPersonal
+          };
+}
+
+function getStatus(metric, val) {
+          if (metric.crit && metric.crit(val)) return 'crit';
+          if (metric.warn && metric.warn(val)) return 'warn';
+          return 'ok';
+}
+
+function renderRow(key) {
+          const m = metrics[key];
+          const status = getStatus(m, m.val);
+          const cls = status === 'crit' ? 'crit' : (status === 'warn' ? 'warn' : '');
+          const sel = activeMetric === key ? 'selected' : '';
+          let displayVal = m.val;
+          if (['bones','muscles','cardio','nutrition','ocular'].includes(key)) displayVal = m.val.toFixed(1);
+          else if (key === 'radDose') displayVal = m.val.toFixed(1);
+          else if (key === 'stress') displayVal = Math.round(m.val);
+          else displayVal = Math.round(m.val);
+
+          return `<div class="telemetry-row ${cls} ${sel}" onclick="inspectMetric('${key}')">
+            <div>
+              <div style="font-size:11px; font-weight:700;">${m.name}</div>
+              <div style="font-size:9px; color:var(--muted);">${m.norm} ${m.unit}</div>
+            </div>
+            <div style="font-size:15px; font-weight:800; color:${status==='crit'?'var(--red)':status==='warn'?'var(--yellow)':'var(--green)'};">
+              ${displayVal}<span style="font-size:9px;"> ${m.unit}</span>
+            </div>
+          </div>`;
+}
+
+function renderTelemetry() {
+          document.getElementById('sensors-list').innerHTML = ['heart','o2','ocular','cognitive'].map(renderRow).join('');
+          document.getElementById('inputs-list').innerHTML = ['ARED','Aerobic','VitD','Calcium','Protein','LBNP','Sleep','Cortisol','DailyDose'].map(renderInputRow).join('');
+          document.getElementById('outputs-list').innerHTML = ['bones','muscles','cardio','radDose','stress','nutrition'].map(renderRow).join('');
+
+          const confPct = Math.round(aiConfidence * 100);
+          document.getElementById('ai-confidence').innerText = confPct + '%';
+          let aiText = "Collecting baseline data...";
+          if (confPct > 0 && confPct < 100) aiText = "Calibrating individual response...";
+          if (confPct === 100) aiText = "Personalization fully active.";
+          document.getElementById('ai-status-text').innerText = aiText;
+}
+
+function renderInputRow(key) {
+          const meta = {
+            ARED: { name: "ARED Load", unit: "%", norm: "100-150" },
+            Aerobic: { name: "Aerobic Load", unit: "%", norm: "100-150" },
+            VitD: { name: "Vitamin D", unit: "IU", norm: "≥1000" },
+            Calcium: { name: "Calcium", unit: "mg", norm: "≥1200" },
+            Protein: { name: "Protein", unit: "g/kg", norm: "≥1.6" },
+            LBNP: { name: "LBNP / Hydration", unit: "%", norm: "60-100" },
+            Sleep: { name: "Sleep", unit: "h", norm: "≥8" },
+            Cortisol: { name: "Cortisol", unit: "µg/dL", norm: "8-15" },
+            DailyDose: { name: "Daily Dose", unit: "mSv", norm: "<1.0" },
+          }[key];
+          const val = modulationPlan[key];
+          const sel = activeMetric === key ? 'selected' : '';
+          return `<div class="telemetry-row ${sel}" onclick="inspectInput('${key}')">
+            <div>
+              <div style="font-size:11px; font-weight:700;">${meta.name}</div>
+              <div style="font-size:9px; color:var(--muted);">${meta.norm} ${meta.unit}</div>
+            </div>
+            <div style="font-size:14px; font-weight:800; color:var(--cyan);">${val}<span style="font-size:9px;"> ${meta.unit}</span></div>
+          </div>`;
+}
+
+const recommendations = {
+          bones: () => ({ title: "⚠ LOW BONE MINERAL DENSITY", body: `BMD at ${metrics.bones.val.toFixed(1)}% — below 95% safety threshold.`, advice: "Increase ARED load, ensure Calcium ≥1200mg and Vitamin D ≥1000 IU/day.", fix: () => { modulationPlan.ARED = 150; modulationPlan.Calcium = 1500; modulationPlan.VitD = 1500; } }),
+          muscles: () => ({ title: "⚠ MUSCLE ATROPHY DETECTED", body: `Skeletal muscle mass at ${metrics.muscles.val.toFixed(1)}% — progressive atrophy.`, advice: "Increase ARED load to 140%+, maintain Protein ≥1.8 g/kg/day.", fix: () => { modulationPlan.ARED = 140; modulationPlan.Protein = 1.8; } }),
+          cardio: () => ({ title: "⚠ REDUCED CARDIAC OUTPUT", body: `Cardiac efficiency at ${metrics.cardio.val.toFixed(1)}% — deconditioning risk.`, advice: "Increase Aerobic load to 130%+, use LBNP suit 60 min/day.", fix: () => { modulationPlan.Aerobic = 130; modulationPlan.LBNP = 80; } }),
+          radDose: () => ({ title: "☢ CUMULATIVE RADIATION ALERT", body: `Accumulated ${metrics.radDose.val.toFixed(1)} mSv. NASA career limit is 600 mSv.`, advice: "Reduce EVA time, increase shielding. Consult flight surgeon.", fix: null }),
+          stress: () => ({ title: "⚠ ELEVATED PHYSIOLOGICAL STRESS", body: `Stress index at ${metrics.stress.val.toFixed(0)}/100.`, advice: "Sleep ≥8h/day, meditation protocol, review work-rest schedule.", fix: () => { modulationPlan.Sleep = 8; modulationPlan.Cortisol = 10; } }),
+          nutrition: () => ({ title: "⚠ NUTRITIONAL DEFICIT", body: `Nutrition score ${metrics.nutrition.val.toFixed(0)}% — nutrient below threshold.`, advice: "Increase Vitamin D, Calcium, and Protein to standard levels.", fix: () => { modulationPlan.VitD = 1000; modulationPlan.Calcium = 1200; modulationPlan.Protein = 1.6; } }),
+          heart: () => ({ title: "⚠ HEART RATE ANOMALY", body: `HR ${metrics.heart.val.toFixed(0)} bpm outside safe range.`, advice: "Rest, hydrate, monitor for arrhythmia. Consult flight surgeon.", fix: null }),
+          o2: () => ({ title: "⚠ O2 SATURATION LOW", body: `SpO2 ${metrics.o2.val.toFixed(0)}% below safe threshold.`, advice: "Check cabin atmosphere, increase O2 flow.", fix: null }),
+          ocular: () => ({ title: "⚠ OCULAR PRESSURE (SANS)", body: `ICP ${metrics.ocular.val.toFixed(1)} mmHg. SANS risk.`, advice: "Use LBNP suit, lower head during sleep, ophthalmology consult.", fix: null }),
+          cognitive: () => ({ title: "⚠ COGNITIVE SLOWDOWN", body: `Reaction ${metrics.cognitive.val.toFixed(0)} ms — fatigue detected.`, advice: "Rest, sleep, retest PVT. Not cleared for critical EVA.", fix: null }),
+};
+
+function inspectMetric(key) {
+          activeMetric = key;
+          const m = metrics[key];
+          const status = getStatus(m, m.val);
+
+          const body = document.getElementById('holo-body');
+          body.classList.remove('glow-warn', 'glow-crit', 'glow-active');
+          if (status === 'warn') body.classList.add('glow-warn');
+          else if (status === 'crit') body.classList.add('glow-crit');
+          else body.classList.add('glow-active');
+
+          const rec = recommendations[key] ? recommendations[key]() : { title: `DIAGNOSTIC: ${m.name}`, body: m.advice, advice: "", fix: null };
+          const panel = document.getElementById('rec-panel');
+          panel.className = 'rec-panel ' + (status === 'crit' ? 'crit' : '');
+          panel.style.display = 'block';
+          document.getElementById('rec-title').innerText = rec.title;
+          document.getElementById('rec-body').innerText = rec.body;
+          document.getElementById('rec-advice').innerText = rec.advice;
+
+          const actions = document.getElementById('rec-actions');
+          actions.innerHTML = '';
+
+          if (rec.fix) {
+            const btn = document.createElement('button');
+            btn.className = 'quest-btn';
+            btn.innerText = '🛠 Auto-fix in Bio-Modulation';
+            btn.onclick = () => { rec.fix(); renderTelemetry(); closeRec(); openBioModModal(); };
+            actions.appendChild(btn);
+          } else {
+            const btn = document.createElement('button');
+            btn.className = 'quest-btn';
+            btn.innerText = '📞 Consult Flight Surgeon';
+            btn.onclick = () => alert('Flight surgeon notified. Continue monitoring.');
+            actions.appendChild(btn);
+          }
+
+          renderTelemetry();
+          playRetroTone(status === 'crit' ? 320 : 640, 0.15);
+}
+
+function inspectInput(key) {
+          activeMetric = key;
+          renderTelemetry();
+          const meta = {
+            ARED: "Resistance training load. Affects Bones + Muscles.", Aerobic: "Cardio training load. Affects Cardiac output.",
+            VitD: "Vitamin D intake. Affects Bones + Nutrition.", Calcium: "Calcium intake. Affects Bones + Nutrition.",
+            Protein: "Protein intake. Affects Muscles + Nutrition.", LBNP: "Lower-body negative pressure. Affects Cardiac output.",
+            Sleep: "Sleep duration. Affects Stress index.", Cortisol: "Stress hormone (saliva). Affects Stress index.",
+            DailyDose: "Daily radiation exposure. Accumulates.",
+          }[key];
+
+          const panel = document.getElementById('rec-panel');
+          panel.className = 'rec-panel';
+          panel.style.display = 'block';
+          document.getElementById('rec-title').innerText = `⚙ REGIMEN: ${key}`;
+          document.getElementById('rec-body').innerText = meta;
+          document.getElementById('rec-advice').innerText = "Adjust in Bio-Modulation modal.";
+          document.getElementById('rec-actions').innerHTML = '';
+
+          const btn = document.createElement('button');
+          btn.className = 'quest-btn';
+          btn.innerText = '🧬 Open Bio-Modulation';
+          btn.onclick = () => { closeRec(); openBioModModal(); };
+          document.getElementById('rec-actions').appendChild(btn);
+          playRetroTone(640, 0.1);
+}
+
+function closeRec() {
+          document.getElementById('rec-panel').style.display = 'none';
+          document.getElementById('holo-body').classList.remove('glow-warn', 'glow-crit', 'glow-active');
+          activeMetric = null;
+          renderTelemetry();
+}
+
+const folderDefs = [
+          { id: 'nutrition', icon: '🥗', title: 'Nutrition & Biochemistry', sliders: [ { key: 'VitD', label: 'Vitamin D', min: 0, max: 4000, step: 100, unit: 'IU' }, { key: 'Calcium', label: 'Calcium', min: 0, max: 3000, step: 100, unit: 'mg' }, { key: 'Protein', label: 'Protein', min: 0, max: 3, step: 0.1, unit: 'g/kg' } ], outputs: ['nutrition'] },
+          { id: 'muscular', icon: '💪', title: 'Muscular System', sliders: [ { key: 'ARED', label: 'ARED Load', min: 0, max: 200, step: 5, unit: '%' }, { key: 'Protein', label: 'Protein', min: 0, max: 3, step: 0.1, unit: 'g/kg' } ], outputs: ['muscles'] },
+          { id: 'cardio', icon: '🫀', title: 'Cardiovascular System', sliders: [ { key: 'Aerobic', label: 'Aerobic Load', min: 0, max: 200, step: 5, unit: '%' }, { key: 'LBNP', label: 'LBNP / Hydration', min: 0, max: 100, step: 5, unit: '%' } ], outputs: ['cardio'] },
+          { id: 'skeletal', icon: '🦴', title: 'Skeletal System', sliders: [ { key: 'ARED', label: 'ARED Load', min: 0, max: 200, step: 5, unit: '%' }, { key: 'Calcium', label: 'Calcium', min: 0, max: 3000, step: 100, unit: 'mg' }, { key: 'VitD', label: 'Vitamin D', min: 0, max: 4000, step: 100, unit: 'IU' } ], outputs: ['bones'] },
+          { id: 'radiation', icon: '☢️', title: 'Radiation Load', sliders: [ { key: 'DailyDose', label: 'Daily Dose', min: 0, max: 5, step: 0.1, unit: 'mSv' } ], outputs: ['radDose'] },
+          { id: 'stress', icon: '🧠', title: 'Physical Stress Index', sliders: [ { key: 'Sleep', label: 'Sleep', min: 3, max: 12, step: 0.5, unit: 'h' }, { key: 'Cortisol', label: 'Cortisol', min: 4, max: 30, step: 1, unit: 'µg/dL' }, { key: 'Aerobic', label: 'Aerobic Load', min: 0, max: 200, step: 5, unit: '%' } ], outputs: ['stress'] },
+          { id: 'physical', icon: '🏃', title: 'Physical Load', sliders: [ { key: 'ARED', label: 'ARED (Bones + Muscles)', min: 0, max: 200, step: 5, unit: '%' }, { key: 'Aerobic', label: 'Aerobic (Heart)', min: 0, max: 200, step: 5, unit: '%' } ], outputs: ['bones', 'muscles', 'cardio'] },
+];
+
+function buildFolderHTML(def) {
+          const slidersHTML = def.sliders.map(s => `
+            <div class="slider-group">
+              <div class="slider-header">${s.label} <span id="val-${s.key}-${def.id}">${modulationPlan[s.key]} ${s.unit}</span></div>
+              <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${modulationPlan[s.key]}"
+                     data-key="${s.key}" data-unit="${s.unit}" data-fid="${def.id}" oninput="onSliderChange(this)">
+            </div>`).join('');
+          return `<div class="mod-folder" id="folder-${def.id}">
+              <div class="mod-folder-header" onclick="toggleFolder('${def.id}')">
+                <div><span class="title">${def.icon} ${def.title}</span><span class="status-badge" id="badge-${def.id}">not configured</span></div>
+                <span class="folder-arrow">▶</span>
+              </div>
+              <div class="mod-folder-body">${slidersHTML}<div class="folder-conclusion" id="concl-${def.id}"></div></div>
+            </div>`;
+}
+
+function openBioModModal() {
+          document.getElementById('mod-folders-container').innerHTML = folderDefs.map(buildFolderHTML).join('');
+          document.getElementById('slider-days').value = modulationPlan.days;
+          document.getElementById('val-days').innerText = modulationPlan.days + ' days';
+          folderDefs.forEach(updateFolderConclusion);
+          document.getElementById('bio-mod-modal').style.display = 'flex';
+}
+
+function toggleFolder(id) { document.getElementById('folder-' + id).classList.toggle('open'); }
+
+function onDaysSliderChange(el) {
+          modulationPlan.days = parseInt(el.value);
+          document.getElementById('val-days').innerText = modulationPlan.days + ' days';
+          folderDefs.forEach(updateFolderConclusion);
+}
+
+function onSliderChange(el) {
+          const key = el.dataset.key, unit = el.dataset.unit, fid = el.dataset.fid;
+          modulationPlan[key] = parseFloat(el.value);
+          document.getElementById(`val-${key}-${fid}`).innerText = el.value + ' ' + unit;
+          document.querySelectorAll(`input[data-key="${key}"]`).forEach(inp => {
+            inp.value = el.value;
+            const target = document.getElementById(`val-${key}-${inp.dataset.fid}`);
+            if (target) target.innerText = el.value + ' ' + inp.dataset.unit;
+          });
+          folderDefs.forEach(def => {
+            if (def.sliders.some(s => s.key === key)) {
+              const badge = document.getElementById('badge-' + def.id);
+              badge.innerText = 'configured ✓'; badge.classList.add('configured');
+            }
+          });
+          folderDefs.forEach(updateFolderConclusion);
+          renderTelemetry();
+}
+
+function updateFolderConclusion(def) {
+          const state = metricsToState();
+          const result = simulateDual(state, modulationPlan, modulationPlan.days);
+
+          const lastBase = result.baseline;
+          const lastPers = result.personal;
+
+          const conclEl = document.getElementById('concl-' + def.id);
+          if (!conclEl) return;
+
+          const lines = def.outputs.map(key => {
+            const before = state[key];
+            const afterBase = lastBase[key];
+            const afterPers = lastPers[key];
+
+            const deltaBase = afterBase - before;
+            const deltaPers = afterPers - before;
+
+            const sign = deltaPers >= 0 ? '+' : '';
+            const label = { bones:"BMD", muscles:"Muscle Mass", cardio:"Cardiac Output", radDose:"Radiation", stress:"Stress", nutrition:"Nutrition" }[key];
+            const unit = key === 'radDose' ? ' mSv' : key === 'stress' ? '' : '%';
+
+            let color = (key === 'radDose' || key === 'stress') ? (deltaPers > 0 ? 'delta-neg' : 'delta-pos') : (deltaPers < 0 ? 'delta-neg' : 'delta-pos');
+
+            if (aiConfidence > 0.1) {
+               return `<div class="report-row"><span>${label} (AI)</span><span class="${color}">${sign}${deltaPers.toFixed(1)}${unit}</span></div>`;
+            } else {
+               return `<div class="report-row"><span>${label}</span><span class="${color}">${sign}${deltaBase.toFixed(1)}${unit}</span></div>`;
+            }
+          }).join('');
+
+          conclEl.className = 'folder-conclusion';
+          conclEl.innerHTML = `<div style="font-size:10px; color:var(--muted); margin-bottom:6px;">Forecast (${modulationPlan.days} days):</div>${lines}`;
+}
+
+function runFullReport() {
+          const state = metricsToState();
+          const result = simulateDual(state, modulationPlan, modulationPlan.days);
+          const lastBase = result.baseline;
+          const lastPers = result.personal;
+
+          const metricLabels = { bones:"Bone Mineral Density", muscles:"Muscle Mass", cardio:"Cardiac Output", radDose:"Radiation Dose", stress:"Stress Index", nutrition:"Nutrition Score" };
+          const units = { bones:"%", muscles:"%", cardio:"%", radDose:" mSv", stress:"", nutrition:"%" };
+
+          const rows = Object.keys(metricLabels).map(key => {
+            const before = state[key];
+            const afterBase = lastBase[key];
+            const afterPers = lastPers[key];
+
+            const deltaBase = afterBase - before;
+            const deltaPers = afterPers - before;
+
+            const colorBase = (key === 'radDose' || key === 'stress') ? (deltaBase > 0 ? 'delta-neg' : 'delta-pos') : (deltaBase < 0 ? 'delta-neg' : 'delta-pos');
+            const colorPers = (key === 'radDose' || key === 'stress') ? (deltaPers > 0 ? 'delta-neg' : 'delta-pos') : (deltaPers < 0 ? 'delta-neg' : 'delta-pos');
+
+            return `<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0;">
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">${metricLabels[key]}</div>
+              <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                <span style="color: var(--cyan);">Baseline:</span>
+                <span class="${colorBase}">${afterBase.toFixed(1)}${units[key]}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 2px;">
+                <span style="color: var(--green);">AI Personalized:</span>
+                <span class="${colorPers}" style="font-weight: bold;">${afterPers.toFixed(1)}${units[key]}</span>
+              </div>
+            </div>`;
+          }).join('');
+
+          const weights = { bones:0.25, muscles:0.25, cardio:0.20, radDose:0.15, stress:0.10, nutrition:0.05 };
+          const factors = Object.keys(weights).map(key => ({ key, impact: (lastPers[key] - state[key]) * weights[key] }))
+            .sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+
+          const maxAbs = Math.max(...factors.map(f => Math.abs(f.impact)), 1);
+          const factorBars = factors.map(f => {
+            const pct = (Math.abs(f.impact) / maxAbs) * 100;
+            const color = f.impact > 0 ? 'var(--red)' : 'var(--green)';
+            return `<div class="factor-bar"><div class="factor-label">${metricLabels[f.key]}</div><div class="factor-track"><div class="factor-fill" style="width:${pct}%; background:${color};"></div></div><div class="factor-val" style="color:${color};">${f.impact >= 0 ? '+' : ''}${f.impact.toFixed(2)}</div></div>`;
+          }).join('');
+
+          const anyCrit = lastPers.bones < 90 || lastPers.muscles < 90 || lastPers.radDose > 600 || lastPers.stress > 75;
+          const anyWarn = lastPers.bones < 95 || lastPers.muscles < 95 || lastPers.cardio < 95 || lastPers.radDose > 300 || lastPers.stress > 60 || lastPers.nutrition < 80;
+          const overall = anyCrit ? 'CRITICAL' : anyWarn ? 'CAUTION' : 'NOMINAL';
+          const overallColor = anyCrit ? 'var(--red)' : anyWarn ? 'var(--yellow)' : 'var(--green)';
+
+          const confPct = Math.round(aiConfidence * 100);
+          let confHtml = `<div style="font-size: 11px; text-align: center; margin-bottom: 16px; color: var(--muted);">
+            AI Calibration Confidence: <span style="color: var(--cyan); font-weight: bold;">${confPct}%</span>
+          </div>`;
+
+          document.getElementById('report-content').innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+              <div style="font-size:11px; color:var(--muted); letter-spacing:2px;">MISSION STATUS (AI PERSONALIZED)</div>
+              <div style="font-size:28px; font-weight:900; color:${overallColor};">${overall}</div>
+              <div style="font-size:11px; color:var(--muted);">Forecast for ${modulationPlan.days} days</div>
+            </div>
+            ${confHtml}
+            <div class="report-grid">
+              <div class="report-section">
+                <h3>Dual Projection</h3>
+                ${rows}
+              </div>
+              <div class="report-section">
+                <h3>Factor Contribution (AI weighted)</h3>
+                ${factorBars}
+              </div>
+            </div>
+            <div style="font-size:11px; color:var(--muted); padding:10px; background:rgba(0,0,0,0.3); border-radius:6px; line-height: 1.5;">
+              💡 <b>Two-Channel System:</b> The baseline uses standard NASA averages. As the simulator collects daily real-world data (simulated via hidden variables), the AI detects individual deviations and adjusts the personalized forecast accordingly. Confidence grows by ~5% per day.
+            </div>`;
+          document.getElementById('report-modal').style.display = 'flex';
+}
+
+function applyFullModulation() {
+          const state = metricsToState();
+          const result = simulateDual(state, modulationPlan, modulationPlan.days);
+          const last = result.personal;
+
+          Object.assign(metrics, {
+            bones: {...metrics.bones, val: last.bones}, muscles: {...metrics.muscles, val: last.muscles},
+            cardio: {...metrics.cardio, val: last.cardio}, radDose: {...metrics.radDose, val: last.radDose},
+            stress: {...metrics.stress, val: last.stress}, nutrition: {...metrics.nutrition, val: last.nutrition}
+          });
+          renderTelemetry();
+          playRetroTone(880, 0.2);
+          closeModals();
+}
+
+function metricsToState() {
+          return { bones: metrics.bones.val, muscles: metrics.muscles.val, cardio: metrics.cardio.val, radDose: metrics.radDose.val, stress: metrics.stress.val, nutrition: metrics.nutrition.val };
+}
+
+let dailyXP = 0, totalXP = 450, simHour = 0;
+
+function updateXPBar() {
+          document.getElementById('xp-fill').style.width = Math.min(100, (dailyXP / 600) * 100) + '%';
+          document.getElementById('xp-text').innerText = `${dailyXP} / 600 XP`;
+          const level = Math.floor(totalXP / 600) + 1;
+          let rank = "SPECIALIST";
+          if (level === 3) rank = "COMMANDER";
+          if (level === 4) rank = "VETERAN";
+          if (level >= 5) rank = "LEGEND";
+          document.getElementById('rank-label').innerText = `LVL ${level} // ${rank}`;
+}
+
+const quests = [
+          { id: 1, title: "ARED Resistive Squats", sub: "Prevent 0g bone loss", xp: 150, done: false },
+          { id: 2, title: "Chibis Vacuum Suit (30m)", sub: "Relieve SANS pressure", xp: 200, done: false },
+          { id: 3, title: "Vitamin D3 + Potassium", sub: "Renal stone prophylaxis", xp: 100, done: false },
+          { id: 4, title: "NASA PVT Reaction Check", sub: "Verify neuro-alertness", xp: 150, done: false },
+];
+
+function renderQuests() {
+          document.getElementById('quests-list').innerHTML = quests.map(q => `
+            <div class="quest-card">
+              <div><div style="font-size:12px; font-weight:700;">${q.title}</div><div style="font-size:10px; color:var(--muted);">${q.sub}</div></div>
+              <button class="quest-btn ${q.done ? 'done' : ''}" onclick="completeQuest(${q.id})">${q.done ? 'DONE' : '+' + q.xp + ' XP'}</button>
+            </div>`).join('');
+          updateXPBar();
+}
+
+function completeQuest(id) {
+          const q = quests.find(x => x.id === id);
+          if (!q || q.done) return;
+          q.done = true; dailyXP += q.xp; totalXP += q.xp;
+          playRetroTone(880, 0.15); renderQuests();
+}
+
+// === DAILY TICK & CALIBRATION LOGIC ===
+setInterval(() => {
+          simHour += 1;
+          if (simHour >= 24) { simHour = 0; simDay++; applyDailyChanges(); }
+          document.getElementById('sys-time-display').innerText = `DAY ${String(simDay).padStart(3,'0')} // ${String(simHour).padStart(2,'0')}:00`;
+}, 2500);
+
+function applyDailyChanges() {
+          const actualState = metricsToState();
+          const predictedState = stepModel(actualState, modulationPlan, currentEnv, false);
+
+          // Симулируем СКРЫТОЕ реальное состояние (деградация в 2.2 раза быстрее)
+          const trueBones = actualState.bones - (0.04 * gravityFactors[currentEnv].bones * TRUE_PERSONAL_FACTOR) * (1 - 0.6 * Math.min(modulationPlan.ARED/100, 1)) + 0.003 * (modulationPlan.Calcium/1200 - 1) + 0.003 * (modulationPlan.VitD/1000 - 1);
+          const trueMuscles = actualState.muscles - (0.07 * gravityFactors[currentEnv].muscles * TRUE_PERSONAL_FACTOR) * (1 - 0.8 * Math.min(modulationPlan.ARED/100, 1)) + 0.01 * (modulationPlan.Protein/1.6 - 1);
+          const trueCardio = actualState.cardio - (0.03 * gravityFactors[currentEnv].cardio * (TRUE_PERSONAL_FACTOR * 0.8)) * (1 - 0.7 * Math.min(modulationPlan.Aerobic/100, 1)) + 0.01 * (modulationPlan.LBNP/100 - 0.5);
+
+          // ИИ учится быстрее (5% в день -> 20 дней до 100%)
+          if (simDay > 1 && aiConfidence < 1.0) {
+            aiConfidence = Math.min(1.0, aiConfidence + 0.05);
+          }
+
+          // Подтягиваем коэффициент ИИ к правде
+          if (aiConfidence > 0) {
+            const error = TRUE_PERSONAL_FACTOR - personalizationFactor;
+            personalizationFactor += error * 0.15 * aiConfidence;
+          }
+
+          // ПРИМЕНЯЕМ РЕАЛЬНОЕ СОСТОЯНИЕ В ИНТЕРФЕЙС
+          metrics.bones.val = clamp(trueBones, 60, 110);
+          metrics.muscles.val = clamp(trueMuscles, 55, 115);
+          metrics.cardio.val = clamp(trueCardio, 55, 115);
+
+          metrics.radDose.val = predictedState.radDose;
+          metrics.stress.val = predictedState.stress;
+          metrics.nutrition.val = predictedState.nutrition;
+
+          metrics.heart.val = clamp(metrics.heart.val + (Math.random()-0.5)*3, 55, 120);
+          metrics.ocular.val = clamp(metrics.ocular.val + (Math.random()-0.5)*0.3, 10, 25);
+          metrics.o2.val = clamp(metrics.o2.val + (Math.random()-0.5)*0.5, 92, 100);
+
+          dailyXP = 0; quests.forEach(q => q.done = false);
+          renderQuests(); renderTelemetry();
+}
+
+function setEnv(env, btn) {
+          currentEnv = env;
+          document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderTelemetry();
+}
+
+function simulateAnomaly() {
+          metrics.ocular.val = 22.5;
+          renderTelemetry(); inspectMetric('ocular');
+          playRetroTone(320, 0.4, 'sawtooth');
+}
+
+let pvtState = 'idle', pvtStart = 0, pvtTimer = null;
+function openPVT() {
+          document.getElementById('pvt-modal').style.display = 'flex';
+          const box = document.getElementById('pvt-box');
+          box.className = 'pvt-box'; box.innerText = 'WAIT FOR SIGNAL...';
+          document.getElementById('pvt-result').innerText = '';
+          pvtState = 'waiting';
+          pvtTimer = setTimeout(() => {
+            if (pvtState !== 'waiting') return;
+            box.className = 'pvt-box go'; box.innerText = 'CLICK NOW!';
+            pvtStart = performance.now(); pvtState = 'ready';
+          }, 2500 + Math.random() * 2000);
+}
+
+function handlePVTClick() {
+          if (pvtState !== 'ready') return;
+          const ms = Math.round(performance.now() - pvtStart);
+          pvtState = 'idle';
+          document.getElementById('pvt-box').className = 'pvt-box';
+          document.getElementById('pvt-box').innerText = ms + ' ms';
+
+          const isOptimal = ms < 380;
+          document.getElementById('pvt-result').innerText = isOptimal ? 'COGNITIVE STATUS: OPTIMAL (+150 XP)' : 'FATIGUE DETECTED: REST ADVISED';
+          metrics.cognitive.val = ms;
+          renderTelemetry();
+          if (isOptimal) completeQuest(4);
+}
+
+let camStream = null;
+async function openCamScan() {
+          document.getElementById('cam-modal').style.display = 'flex';
+          try { camStream = await navigator.mediaDevices.getUserMedia({ video: true }); document.getElementById('cam-video').srcObject = camStream; } catch(e) {}
+}
+function runCamMeasure() { metrics.heart.val = 70 + Math.random()*15; renderTelemetry(); closeModals(); }
+
+function openGraphsModal() {
+          document.getElementById('graphs-modal').style.display = 'flex';
+          const grid = document.querySelector('#graphs-modal .graphs-grid');
+          grid.innerHTML = '';
+          const result = simulateDual(metricsToState(), modulationPlan, modulationPlan.days);
+          const labels = { bones:"BMD", muscles:"Muscles", cardio:"Cardiac", radDose:"Radiation", stress:"Stress", nutrition:"Nutrition" };
+
+          Object.keys(labels).forEach(key => {
+            grid.innerHTML += `<div class="report-section"><h3>${labels[key]}</h3><canvas id="g-${key}" style="width:100%; height:80px;"></canvas></div>`;
+            setTimeout(() => drawDualLine(`g-${key}`, result.historyBaseline.map(h => h[key]), result.historyPersonal.map(h => h[key]), key==='radDose'?'#a855f7':key==='stress'?'#ef4444':'#38bdf8'), 10);
+          });
+}
+
+function drawDualLine(canvasId, dataBase, dataPers, color) {
+          const c = document.getElementById(canvasId); if (!c) return;
+          const ctx = c.getContext('2d'), rect = c.getBoundingClientRect(); if (rect.width === 0) return;
+          c.width = rect.width * 2; c.height = rect.height * 2; ctx.scale(2, 2);
+          const w = rect.width, h = rect.height, pad = 15;
+
+          const allData = [...dataBase, ...dataPers];
+          const min = Math.min(...allData), max = Math.max(...allData), range = Math.max(max - min, 0.1);
+
+          ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '9px monospace'; ctx.lineWidth = 1;
+          for(let i=0; i<=2; i++) {
+            const y = pad + (i/2) * (h - pad*2);
+            ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w-pad, y); ctx.stroke();
+            ctx.fillText((max - (i/2)*(max-min)).toFixed(1), pad+2, y-3);
+          }
+
+          // Baseline (dashed)
+          ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
+          dataBase.forEach((v, i) => {
+            const x = pad + (i / (dataBase.length - 1)) * (w - pad*2);
+            const y = h - pad - ((v - min) / range) * (h - pad*2);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          });
+          ctx.stroke(); ctx.setLineDash([]);
+
+          // Personalized (solid)
+          ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+          dataPers.forEach((v, i) => {
+            const x = pad + (i / (dataPers.length - 1)) * (w - pad*2);
+            const y = h - pad - ((v - min) / range) * (h - pad*2);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+}
+
+function closeModals() {
+          document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+          clearTimeout(pvtTimer);
+          if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+}
+
+const bgCanvas = document.getElementById('bg-canvas'), bgCtx = bgCanvas.getContext('2d');
+let w, h;
+function resizeBg() { w = bgCanvas.width = innerWidth; h = bgCanvas.height = innerHeight; }
+addEventListener('resize', resizeBg); resizeBg();
+function drawBgParticles() {
+          bgCtx.fillStyle = 'rgba(4,7,13,0.4)'; bgCtx.fillRect(0,0,w,h);
+          bgCtx.fillStyle = 'rgba(255,255,255,0.3)';
+          for (let i = 0; i < 100; i++) bgCtx.fillRect((Math.sin(i*123)*0.5+0.5)*w, (Math.cos(i*321)*0.5+0.5)*h, 1.5, 1.5);
+          requestAnimationFrame(drawBgParticles);
+}
+drawBgParticles();
+
+const ecg = document.getElementById('ecg'), eCtx = ecg.getContext('2d');
+let ex = 0;
+function drawECG() {
+          ecg.width = ecg.offsetWidth; const mid = ecg.height / 2;
+          eCtx.fillStyle = 'rgba(4,7,13,0.12)'; eCtx.fillRect(0,0,ecg.width,ecg.height);
+          eCtx.strokeStyle = getStatus(metrics.heart, metrics.heart.val) === 'crit' ? '#ef4444' : '#10b981';
+          eCtx.lineWidth = 2; eCtx.beginPath(); eCtx.moveTo(ex, mid); ex += 3;
+          let ey = mid;
+          if (ex % 90 > 40 && ex % 90 < 46) ey = mid - 20; else if (ex % 90 >= 46 && ex % 90 < 52) ey = mid + 14;
+          eCtx.lineTo(ex, ey); eCtx.stroke();
+          if (ex > ecg.width) ex = 0;
+          requestAnimationFrame(drawECG);
+}
+drawECG();
+
+let audioCtx = null;
+function playRetroTone(freq = 520, dur = 0.12, type = 'sine') {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+          osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
+
+renderQuests(); renderTelemetry();
+    </script>
+</body>
+</html>
